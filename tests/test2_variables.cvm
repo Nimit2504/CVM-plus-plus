@@ -1,0 +1,24 @@
+// test2_variables.cvm
+// Tests: let, assignment, variable reuse, expression with variables
+
+let x = 10;
+let y = 20;
+let z = x + y;
+
+print x;    // expects: 10
+print y;    // expects: 20
+print z;    // expects: 30
+
+// Reassign
+x = x * 2;
+print x;    // expects: 20
+
+// Chained variable expressions
+let result = x + y - z;
+print result;  // expects: 20 + 20 - 30 = 10
+
+// Boolean variables
+let flag = true;
+print flag;    // expects: true
+flag = false;
+print flag;    // expects: false

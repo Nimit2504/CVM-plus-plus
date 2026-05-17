@@ -1,0 +1,26 @@
+cmake_minimum_required(VERSION 3.10)
+project(CVMPlusPlus CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Enable all warnings so you catch issues early
+if (MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+set(SOURCES
+    src/main.cpp
+    src/lexer.cpp
+    src/parser.cpp
+    src/compiler.cpp
+    src/vm.cpp
+)
+
+add_executable(cvm ${SOURCES})
+target_include_directories(cvm PRIVATE src)
+
+# Optional: build with debug symbols by default
+set(CMAKE_BUILD_TYPE Debug)

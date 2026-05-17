@@ -1,0 +1,36 @@
+// test5_fizzbuzz.cvm
+// Classic FizzBuzz 1-20 using only the features CVM supports.
+// Since CVM has no string type, we use integer codes:
+//   Print the number normally;
+//   If divisible by 15 → print 0  (FizzBuzz)
+//   If divisible by  3 → print -3 (Fizz)
+//   If divisible by  5 → print -5 (Buzz)
+//
+// Integer modulo trick:  n % d  =  n - (n / d) * d
+
+let num = 1;
+while (num <= 20) {
+    let div15 = num / 15;
+    let mod15 = num - div15 * 15;
+
+    let div3  = num / 3;
+    let mod3  = num - div3 * 3;
+
+    let div5  = num / 5;
+    let mod5  = num - div5 * 5;
+
+    if (mod15 == 0) {
+        print 0;        // FizzBuzz
+    } else if (mod3 == 0) {
+        print -3;       // Fizz
+    } else if (mod5 == 0) {
+        print -5;       // Buzz
+    } else {
+        print num;
+    }
+
+    num = num + 1;
+}
+
+// Expected output (one per line):
+// 1 2 -3 4 -5 -3 7 8 -3 -5 11 -3 13 14 0 16 17 -3 19 -5

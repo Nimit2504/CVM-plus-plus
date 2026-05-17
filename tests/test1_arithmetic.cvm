@@ -1,0 +1,20 @@
+// test1_arithmetic.cvm
+// Tests: integer literals, all four operators, operator precedence
+
+let a = 10;
+let b = 3;
+
+// Basic operations
+print a + b;    // expects: 13
+print a - b;    // expects: 7
+print a * b;    // expects: 30
+print a / b;    // expects: 3  (integer division)
+
+// Precedence: * before +
+print 2 + 3 * 4;   // expects: 14  (not 20)
+print (2 + 3) * 4; // expects: 20
+
+// Unary minus
+let neg = -5;
+print neg;           // expects: -5
+print a + neg;       // expects: 5

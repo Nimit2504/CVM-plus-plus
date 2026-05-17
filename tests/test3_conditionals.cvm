@@ -1,0 +1,47 @@
+// test3_conditionals.cvm
+// Tests: if, else, else-if chains, comparison operators, booleans
+
+let score = 85;
+
+// Basic if/else
+if (score >= 90) {
+    print 1;   // A
+} else {
+    print 0;   // not A
+}
+// expects: 0
+
+// else-if chain
+if (score >= 90) {
+    print 4;    // A
+} else if (score >= 80) {
+    print 3;    // B
+} else if (score >= 70) {
+    print 2;    // C
+} else {
+    print 1;    // F
+}
+// expects: 3
+
+// Equality check with booleans
+let passed = score >= 50;
+if (passed == true) {
+    print 100;
+}
+// expects: 100
+
+// Nested if
+let x = 15;
+if (x > 10) {
+    if (x > 20) {
+        print 2;
+    } else {
+        print 1;   // x > 10 but not > 20
+    }
+}
+// expects: 1
+
+// if without else (condition false - nothing prints)
+if (x == 999) {
+    print 9999;
+}

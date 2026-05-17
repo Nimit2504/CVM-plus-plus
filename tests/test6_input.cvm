@@ -1,0 +1,21 @@
+// test6_input.cvm
+// Tests: input keyword, interactive computation
+// Run this script and type numbers when prompted.
+
+// Read two numbers from the user
+input a;
+input b;
+
+// Show their sum, difference, product
+print a + b;
+print a - b;
+print a * b;
+
+// Show which is larger
+if (a > b) {
+    print 1;    // a is larger
+} else if (b > a) {
+    print 2;    // b is larger
+} else {
+    print 0;    // they are equal
+}
