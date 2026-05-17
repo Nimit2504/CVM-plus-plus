@@ -164,11 +164,14 @@ cvm/
 
 ---
 
-## Reference
+## Why I Built This
 
-Architecture inspired by *Crafting Interpreters* by Robert Nystrom
-(https://craftinginterpreters.com)
+Most developers use Python or Java without ever questioning what happens 
+between writing code and the CPU executing it. This project forced me to 
+answer that question from scratch — no libraries, no shortcuts.
 
----
+Building CVM++ gave me a ground-up understanding of how real language 
+runtimes like CPython and the JVM actually work. Every bug I fixed in the 
+lexer, parser, or VM taught me something that reading a textbook never could.
 
-*Built by Nimit Jain &nbsp;·&nbsp; Mentor: Raman*
+*Built by Nimit Jain*
