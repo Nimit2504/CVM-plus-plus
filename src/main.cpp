@@ -210,19 +210,10 @@ void runREPL(bool debug) {
 
         accumulated += line + "\n";
 
-        // Auto-flush if the line ends with ';' and no open braces.
-        // (Simple heuristic; good enough for single-statement REPL use.)
-        int braceDepth = 0;
-        for (char c : accumulated) {
-            if (c == '{') ++braceDepth;
-            if (c == '}') --braceDepth;
-        }
-        if (braceDepth == 0 && !accumulated.empty() &&
-            accumulated.find(';') != std::string::npos)
-        {
-            runSource(accumulated, debug);
-            accumulated.clear();
-        }
+        // Never auto-run. Always accumulate until the user
+        // presses a blank line. This ensures all statements in a
+        // session share one VM instance and variables persist.
+        // (Blank line handling is above — it calls runSource then clears)
     }
 
     std::cout << "\nGoodbye!\n";
