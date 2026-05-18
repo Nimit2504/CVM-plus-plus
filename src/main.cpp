@@ -12,13 +12,13 @@
 
 // ── Print all tokens ─────────────────────────────────────────
 void printTokens(const std::vector<Token>& tokens) {
-    std::cout << "\n╔══════════════════ TOKENS ══════════════════╗\n";
+    std::cout << "\n=== TOKENS ===\n";
     for (const auto& t : tokens) {
         if (t.type == TokenType::EOF_TOK) continue;
         std::cout << "  line " << t.line
                   << "  [" << t.value << "]\n";
     }
-    std::cout << "╚════════════════════════════════════════════╝\n";
+    std::cout << "=====================================\n";
 }
 
 // ── Recursively print the AST ─────────────────────────────────
@@ -44,19 +44,19 @@ void printAST(ASTNode* node, int indent = 0) {
         printAST(n->operand.get(), indent + 1);
     }
     else if (auto n = dynamic_cast<IfStatement*>(node)) {
-        std::cout << pad << "  ├─ condition:\n";
+        std::cout << pad << "  +- condition:\n";
         printAST(n->condition.get(), indent + 2);
-        std::cout << pad << "  ├─ then:\n";
+        std::cout << pad << "  +- then:\n";
         printAST(n->thenBranch.get(), indent + 2);
         if (n->elseBranch) {
-            std::cout << pad << "  └─ else:\n";
+            std::cout << pad << "  +- else:\n";
             printAST(n->elseBranch.get(), indent + 2);
         }
     }
     else if (auto n = dynamic_cast<WhileStatement*>(node)) {
-        std::cout << pad << "  ├─ condition:\n";
+        std::cout << pad << "  +- condition:\n";
         printAST(n->condition.get(), indent + 2);
-        std::cout << pad << "  └─ body:\n";
+        std::cout << pad << "  +- body:\n";
         printAST(n->body.get(), indent + 2);
     }
     else if (auto n = dynamic_cast<PrintStatement*>(node)) {
@@ -68,7 +68,7 @@ void printAST(ASTNode* node, int indent = 0) {
 
 // ── Disassemble compiled bytecode into human-readable form ────
 void printBytecode(const CompiledProgram& prog) {
-    std::cout << "\n╔══════════════ BYTECODE DISASSEMBLY ════════╗\n";
+    std::cout << "\n=== BYTECODE DISASSEMBLY ===\n";
 
     std::cout << "  Name Table (variables):\n";
     for (int i = 0; i < (int)prog.nameTable.size(); i++)
@@ -128,7 +128,7 @@ void printBytecode(const CompiledProgram& prog) {
         }
         std::cout << "\n";
     }
-    std::cout << "╚════════════════════════════════════════════╝\n";
+    std::cout << "=====================================\n";
 }
 
 // ============================================================
@@ -147,9 +147,9 @@ void runSource(const std::string& source, bool debug) {
         Parser parser(tokens);
         auto ast = parser.parse();
         if (debug) {
-            std::cout << "\n╔══════════════════ AST ═════════════════════╗\n";
+            std::cout << "\n=== AST ===\n";
             printAST(ast.get());
-            std::cout << "╚════════════════════════════════════════════╝\n";
+            std::cout << "=====================================\n";
         }
 
         // 3. Compile
@@ -159,11 +159,11 @@ void runSource(const std::string& source, bool debug) {
 
         // 4. Execute
         if (debug)
-            std::cout << "\n╔═══════════════ EXECUTION ══════════════════╗\n";
+            std::cout << "\n=== EXECUTION ===\n";
         VM vm(std::move(prog), debug);
         vm.run();
         if (debug)
-            std::cout << "╚════════════════════════════════════════════╝\n";
+            std::cout << "=====================================\n";
 
     } catch (const std::exception& e) {
         std::cerr << "\n[CVM ERROR] " << e.what() << "\n";
@@ -174,14 +174,14 @@ void runSource(const std::string& source, bool debug) {
 //  REPL  – Read-Eval-Print Loop
 // ============================================================
 void runREPL(bool debug) {
-    std::cout << "┌─────────────────────────────────────────────┐\n";
-    std::cout << "│         CVM++  Interactive REPL             │\n";
-    std::cout << "│  Commands:                                  │\n";
-    std::cout << "│    exit          – quit                     │\n";
-    std::cout << "│    debug on/off  – toggle debug mode        │\n";
-    std::cout << "│  Terminate multi-line input with a blank    │\n";
-    std::cout << "│  line, or just type a single statement.     │\n";
-    std::cout << "└─────────────────────────────────────────────┘\n\n";
+    std::cout << "+---------------------------------------------+\n";
+    std::cout << "|         CVM++  Interactive REPL             |\n";
+    std::cout << "|  Commands:                                  |\n";
+    std::cout << "|    exit          - quit                     |\n";
+    std::cout << "|    debug on/off  - toggle debug mode        |\n";
+    std::cout << "|  Terminate multi-line input with a blank    |\n";
+    std::cout << "|  line, or just type a single statement.     |\n";
+    std::cout << "+---------------------------------------------+\n\n";
 
     std::string accumulated;
 
