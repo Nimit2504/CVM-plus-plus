@@ -1,0 +1,188 @@
+================================================================
+  CVM++ — Custom Compiler & Stack-Based Virtual Machine
+  Instructions to Build and Run
+================================================================
+
+REQUIREMENTS
+------------
+- g++ with C++17 support (MinGW on Windows, g++ on Linux/Mac)
+- CMake 3.10+  (optional)
+- OS: Windows / Linux / macOS
+
+
+================================================================
+  STEP 1 — BUILD
+================================================================
+
+Option A: Using g++ directly (recommended)
+-------------------------------------------
+Open a terminal in the project root folder (where src/ is).
+
+  Windows:
+    mkdir build
+    g++ -std=c++17 -o build\cvm.exe src/main.cpp src/lexer.cpp src/parser.cpp src/compiler.cpp src/vm.cpp -Isrc
+
+  Linux / Mac:
+    g++ -std=c++17 -o cvm src/main.cpp src/lexer.cpp src/parser.cpp src/compiler.cpp src/vm.cpp -Isrc
+
+
+Option B: Using CMake
+---------------------
+  mkdir build && cd build
+
+  Windows:   cmake -G "MinGW Makefiles" ..
+  Linux/Mac: cmake -G "Unix Makefiles" ..
+
+  cmake --build .
+
+
+================================================================
+  STEP 2 — RUN A SCRIPT DIRECTLY
+================================================================
+
+Compiles and executes a .cvm script in one step:
+
+  Windows:   .\build\cvm.exe tests\test1_arithmetic.cvm
+  Linux/Mac: ./cvm tests/test1_arithmetic.cvm
+
+
+================================================================
+  STEP 3 — COMPILE SOURCE TO BYTECODE FILE (.cvmb)
+================================================================
+
+Compiles a .cvm source file and saves the raw bytecode to a
+.cvmb binary file. The source file is NOT needed to run it later.
+
+  Windows:   .\build\cvm.exe compile tests\fibonacci.cvm -o tests\fibonacci.cvmb
+  Linux/Mac: ./cvm compile tests/fibonacci.cvm -o tests/fibonacci.cvmb
+
+Output:
+  [CVM] Compiled 'tests/fibonacci.cvm'
+  [CVM] Bytecode saved to 'tests/fibonacci.cvmb'
+  [CVM] Bytecode size: 82 bytes
+  [CVM] Variables in name table: 4
+
+The .cvmb file is a binary file containing the raw bytecode
+instructions. This is like Java's .class files or Python's .pyc files.
+
+
+================================================================
+  STEP 4 — RUN A BYTECODE FILE ON THE VM
+================================================================
+
+Loads a .cvmb bytecode file and runs it directly on the VM.
+No source code needed — just the compiled bytecode file.
+
+  Windows:   .\build\cvm.exe run tests\fibonacci.cvmb
+  Linux/Mac: ./cvm run tests/fibonacci.cvmb
+
+Output:
+  [CVM] Loaded bytecode from 'tests/fibonacci.cvmb'
+  [CVM] Bytecode size: 82 bytes
+  [CVM] Running...
+  0
+  1
+  1
+  2
+  ...
+  [CVM] Execution complete.
+
+
+================================================================
+  STEP 5 — DEBUG MODE
+================================================================
+
+Add --debug to any command to see the full internal pipeline:
+
+  # Debug while running source directly
+  .\build\cvm.exe --debug tests\fibonacci.cvm
+
+  # Debug during compilation (shows Tokens, AST, Bytecode)
+  .\build\cvm.exe compile --debug tests\fibonacci.cvm -o tests\fibonacci.cvmb
+
+  # Debug while running bytecode (shows disassembly + execution trace)
+  .\build\cvm.exe run --debug tests\fibonacci.cvmb
+
+Debug output shows:
+  1. TOKENS    -- every token the Lexer produced
+  2. AST       -- the tree the Parser built
+  3. BYTECODE  -- the instructions the Compiler generated
+  4. EXECUTION -- each instruction the VM executed step by step
+
+
+================================================================
+  STEP 6 — INTERACTIVE REPL
+================================================================
+
+Start the REPL by running with no arguments:
+
+  Windows:   .\build\cvm.exe
+  Linux/Mac: ./cvm
+
+Type multiple statements then press Enter on a blank line to run:
+
+  cvm>> let x = 10;
+    ... let y = 20;
+    ... print x + y;
+    ...
+  30
+  cvm>> exit
+
+Commands inside REPL:
+  exit        -- quit
+  debug on    -- enable debug mode
+  debug off   -- disable debug mode
+
+
+================================================================
+  COMMAND REFERENCE
+================================================================
+
+  .\build\cvm.exe script.cvm                        Run source directly
+  .\build\cvm.exe --debug script.cvm                Run with debug output
+  .\build\cvm.exe compile script.cvm -o out.cvmb    Compile to bytecode
+  .\build\cvm.exe compile --debug script.cvm -o out.cvmb  Compile + debug
+  .\build\cvm.exe run out.cvmb                      Run bytecode on VM
+  .\build\cvm.exe run --debug out.cvmb              Run bytecode + debug
+  .\build\cvm.exe                                   Start REPL
+
+  (Linux/Mac: replace .\build\cvm.exe with ./cvm)
+
+
+================================================================
+  LANGUAGE QUICK REFERENCE
+================================================================
+
+Variables:      let x = 10;
+Assignment:     x = x + 1;
+Types:          Integer (42), Boolean (true/false)
+Operators:      + - * /  ==  !=  <  <=  >  >=  unary -
+If/else:        if (cond) { ... } else if (cond) { ... } else { ... }
+While loop:     while (cond) { ... }
+Print:          print x;
+Input:          input x;    (reads integer from keyboard)
+Comments:       // this is a comment
+
+
+================================================================
+  TEST SCRIPTS
+================================================================
+
+  tests\test1_arithmetic.cvm     All operators and precedence
+  tests\test2_variables.cvm      let, assignment, booleans
+  tests\test3_conditionals.cvm   if/else-if/else
+  tests\test4_loops.cvm          while loops, factorial, nested loops
+  tests\test5_fizzbuzz.cvm       FizzBuzz 1-20
+  tests\test6_input.cvm          Interactive input/output
+  tests\fibonacci.cvm            Fibonacci sequence
+  tests\calculator.cvm           Simple calculator using input
+  tests\truth_machine.cvm        Truth machine demo
+
+
+================================================================
+  GITHUB
+================================================================
+
+  https://github.com/Nimit2504/CVM-plus-plus
+
+================================================================
