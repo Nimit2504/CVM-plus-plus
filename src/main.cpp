@@ -219,6 +219,141 @@ void runREPL(bool debug) {
     std::cout << "\nGoodbye!\n";
 }
 
+
+// ============================================================
+//  BYTECODE FILE FORMAT  (.cvmb)
+//
+//  Header:   4 bytes magic  "CVMB"
+//            4 bytes (uint32) number of name table entries
+//            4 bytes (uint32) number of bytecode bytes
+//  Names:    for each name: 4-byte length + raw chars (no null)
+//  Code:     raw bytecode bytes
+// ============================================================
+
+// Save a CompiledProgram to a binary .cvmb file
+bool saveProgram(const CompiledProgram& prog, const std::string& outPath) {
+    std::ofstream f(outPath, std::ios::binary);
+    if (!f) {
+        std::cerr << "[CVM] Error: cannot write to '" << outPath << "'\n";
+        return false;
+    }
+
+    // Magic header
+    f.write("CVMB", 4);
+
+    // Name table size
+    uint32_t nameCount = static_cast<uint32_t>(prog.nameTable.size());
+    f.write(reinterpret_cast<const char*>(&nameCount), 4);
+
+    // Bytecode size
+    uint32_t codeSize = static_cast<uint32_t>(prog.code.size());
+    f.write(reinterpret_cast<const char*>(&codeSize), 4);
+
+    // Name table entries: 4-byte length + chars
+    for (const auto& name : prog.nameTable) {
+        uint32_t len = static_cast<uint32_t>(name.size());
+        f.write(reinterpret_cast<const char*>(&len), 4);
+        f.write(name.data(), len);
+    }
+
+    // Raw bytecode
+    f.write(reinterpret_cast<const char*>(prog.code.data()), codeSize);
+
+    return true;
+}
+
+// Load a .cvmb file back into a CompiledProgram
+CompiledProgram loadProgram(const std::string& path) {
+    std::ifstream f(path, std::ios::binary);
+    if (!f)
+        throw std::runtime_error("Cannot open bytecode file '" + path + "'");
+
+    // Check magic
+    char magic[4];
+    f.read(magic, 4);
+    if (std::string(magic, 4) != "CVMB")
+        throw std::runtime_error("Not a valid .cvmb file: '" + path + "'");
+
+    // Read sizes
+    uint32_t nameCount = 0, codeSize = 0;
+    f.read(reinterpret_cast<char*>(&nameCount), 4);
+    f.read(reinterpret_cast<char*>(&codeSize),  4);
+
+    CompiledProgram prog;
+
+    // Read name table
+    for (uint32_t i = 0; i < nameCount; i++) {
+        uint32_t len = 0;
+        f.read(reinterpret_cast<char*>(&len), 4);
+        std::string name(len, '\0');
+        f.read(&name[0], len);
+        prog.nameTable.push_back(name);
+    }
+
+    // Read bytecode
+    prog.code.resize(codeSize);
+    f.read(reinterpret_cast<char*>(prog.code.data()), codeSize);
+
+    return prog;
+}
+
+// Compile a .cvm source file and save bytecode to a .cvmb file
+void compileToFile(const std::string& srcPath, const std::string& outPath, bool debug) {
+    std::ifstream file(srcPath);
+    if (!file) {
+        std::cerr << "[CVM] Error: cannot open source file '" << srcPath << "'\n";
+        return;
+    }
+    std::ostringstream ss;
+    ss << file.rdbuf();
+    std::string source = ss.str();
+
+    try {
+        Lexer lexer(source);
+        auto tokens = lexer.tokenize();
+        if (debug) printTokens(tokens);
+
+        Parser parser(tokens);
+        auto ast = parser.parse();
+        if (debug) {
+            std::cout << "\n=== AST ===\n";
+            printAST(ast.get());
+            std::cout << "=====================================\n";
+        }
+
+        Compiler compiler;
+        auto prog = compiler.compile(ast.get());
+        if (debug) printBytecode(prog);
+
+        if (saveProgram(prog, outPath)) {
+            std::cout << "[CVM] Compiled '" << srcPath << "'\n";
+            std::cout << "[CVM] Bytecode saved to '" << outPath << "'\n";
+            std::cout << "[CVM] Bytecode size: " << prog.code.size() << " bytes\n";
+            std::cout << "[CVM] Variables in name table: " << prog.nameTable.size() << "\n";
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "\n[CVM ERROR] " << e.what() << "\n";
+    }
+}
+
+// Load a .cvmb bytecode file and execute it on the VM
+void runFromFile(const std::string& path, bool debug) {
+    try {
+        CompiledProgram prog = loadProgram(path);
+        std::cout << "[CVM] Loaded bytecode from '" << path << "'\n";
+        std::cout << "[CVM] Bytecode size: " << prog.code.size() << " bytes\n";
+        std::cout << "[CVM] Running...\n";
+        std::cout << "-------------------------------------\n";
+        if (debug) printBytecode(prog);
+        VM vm(std::move(prog), debug);
+        vm.run();
+        std::cout << "-------------------------------------\n";
+        std::cout << "[CVM] Execution complete.\n";
+    } catch (const std::exception& e) {
+        std::cerr << "\n[CVM ERROR] " << e.what() << "\n";
+    }
+}
+
 // ============================================================
 //  main()
 //  Usage:
@@ -228,9 +363,66 @@ void runREPL(bool debug) {
 //    cvm -d script.cvm      → same
 // ============================================================
 int main(int argc, char* argv[]) {
-    bool        debug    = false;
-    std::string filename;
+    // Usage:
+    //   cvm                              -> REPL
+    //   cvm script.cvm                   -> run source file
+    //   cvm --debug script.cvm           -> run with debug output
+    //   cvm compile script.cvm -o out.cvmb  -> compile to bytecode file
+    //   cvm run out.cvmb                 -> run bytecode file on VM
+    //   cvm compile --debug script.cvm -o out.cvmb  -> compile with debug
 
+    if (argc < 2) {
+        runREPL(false);
+        return 0;
+    }
+
+    std::string command = argv[1];
+    bool debug = false;
+
+    // ── compile subcommand ───────────────────────────────────
+    // Usage: cvm compile [--debug] source.cvm -o output.cvmb
+    if (command == "compile") {
+        std::string srcPath, outPath;
+        for (int i = 2; i < argc; i++) {
+            std::string arg = argv[i];
+            if (arg == "--debug" || arg == "-d") debug = true;
+            else if ((arg == "-o") && i + 1 < argc) outPath = argv[++i];
+            else srcPath = arg;
+        }
+        if (srcPath.empty()) {
+            std::cerr << "[CVM] Usage: cvm compile [--debug] source.cvm -o output.cvmb\n";
+            return 1;
+        }
+        if (outPath.empty()) {
+            // Default: replace .cvm with .cvmb
+            outPath = srcPath;
+            size_t dot = outPath.rfind('.');
+            if (dot != std::string::npos) outPath = outPath.substr(0, dot);
+            outPath += ".cvmb";
+        }
+        compileToFile(srcPath, outPath, debug);
+        return 0;
+    }
+
+    // ── run subcommand ───────────────────────────────────────
+    // Usage: cvm run [--debug] output.cvmb
+    if (command == "run") {
+        std::string bytecodeFile;
+        for (int i = 2; i < argc; i++) {
+            std::string arg = argv[i];
+            if (arg == "--debug" || arg == "-d") debug = true;
+            else bytecodeFile = arg;
+        }
+        if (bytecodeFile.empty()) {
+            std::cerr << "[CVM] Usage: cvm run [--debug] file.cvmb\n";
+            return 1;
+        }
+        runFromFile(bytecodeFile, debug);
+        return 0;
+    }
+
+    // ── default: run source file directly ───────────────────
+    std::string filename;
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "--debug" || arg == "-d") debug = true;
@@ -248,7 +440,6 @@ int main(int argc, char* argv[]) {
         std::ostringstream ss;
         ss << file.rdbuf();
         std::string source = ss.str();
-
         std::cout << "=== CVM++ | Running: " << filename << " ===\n";
         runSource(source, debug);
     }

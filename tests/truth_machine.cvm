@@ -1,0 +1,14 @@
+// truth_machine.cvm
+// Demo program: Truth Machine
+// Input 0 -> print 0 once and stop
+// Input 1 -> print 1 forever (while loop)
+
+input n;
+
+if (n == 0) {
+    print 0;
+} else {
+    while (n == 1) {
+        print 1;
+    }
+}

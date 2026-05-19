@@ -1,0 +1,25 @@
+// calculator.cvm
+// Demo program: Simple calculator
+// Takes two numbers and an operation code from the user
+// Operation codes: 1=add, 2=subtract, 3=multiply, 4=divide
+
+print 999;   // prompt: enter first number
+input a;
+
+print 888;   // prompt: enter second number
+input b;
+
+print 777;   // prompt: enter operation (1=add 2=sub 3=mul 4=div)
+input op;
+
+if (op == 1) {
+    print a + b;
+} else if (op == 2) {
+    print a - b;
+} else if (op == 3) {
+    print a * b;
+} else if (op == 4) {
+    print a / b;
+} else {
+    print 0;
+}
